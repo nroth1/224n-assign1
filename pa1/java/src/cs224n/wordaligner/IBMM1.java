@@ -33,8 +33,8 @@ public class IBMM1 implements WordAligner {
   }
 
   
-  private int getDelta(int i, int j,int k){
-	  int numerator = t.getCount(, value)
+  private int getDelta(String sourceWord, String targetWord,int numTargetWords){
+	  double numerator = t.getCount(sourceWord, targetWord);
 	  return 1; 
   }
   
