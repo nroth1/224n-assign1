@@ -7,6 +7,7 @@ import java.util.List;
  * A word alignment model
  *
  * @author Brandon Ewonus
+ * @author Nat Roth
  */
 public class IBMM1 implements WordAligner {
 
@@ -67,7 +68,7 @@ public class IBMM1 implements WordAligner {
         }
       }
 
-      // TODO: update deltas
+      // TODO: update t (and q?), then deltas
 
     }
   }
