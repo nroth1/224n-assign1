@@ -33,6 +33,12 @@ public class IBMM1 implements WordAligner {
     return alignment;
   }
 
+  
+  private int getDelta(String sourceWord, String targetWord,int numTargetWords){
+	  double numerator = t.getCount(sourceWord, targetWord);
+	  return 1; 
+  }
+  
   public void train(List<SentencePair> trainingPairs) {
 
     for (SentencePair pair : trainingPairs) {
@@ -57,7 +63,7 @@ public class IBMM1 implements WordAligner {
         int numTargetWords = targetWords.size();
         for (int i = 0; i < numSourceWords; i++) { // loop through source words
           for (int j = 0; j < numTargetWords; j++) { // loop through target words
-            int delta = 1; // TODO: use actual delta
+            int delta = getDelta(sourceWords.get(i),targetWords.get(j),numTargetWords); // TODO: use actual delta
             countTargetSource.incrementCount(targetWords.get(j), sourceWords.get(i), delta);
             countTarget.incrementCount(targetWords.get(j), delta);
             Pair<Integer, Integer> positionPair = new Pair<Integer, Integer>(j, i);
