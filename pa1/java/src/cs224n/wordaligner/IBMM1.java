@@ -3,6 +3,7 @@ package cs224n.wordaligner;
 import cs224n.util.*;
 
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -67,12 +68,15 @@ public class IBMM1 implements WordAligner {
    * @param numTargetWords
    * @return delta
    */
-  private double getDelta(String sourceWord, String targetWord, List<String> sourceList,List<String> targetList ){
+  private double getDelta(String sourceWord, String targetWord, List<String> sourceList,List<String> targetList,HashMap<String,Double> cache){
 	  double numerator;
 	  if( t == null){
 		  numerator = 1/targetSize;
 	  }else{
 		  numerator = t.getCount(sourceWord,targetWord);
+	  }
+	  if(cache.containsKey(targetWord)){
+		return numerator/cache.get(targetWord);
 	  }
 	  double denominator = 0.0;
 	  for(int i = 0; i < sourceList.size();i++){
@@ -82,6 +86,7 @@ public class IBMM1 implements WordAligner {
 			  denominator += t.getCount(sourceList.get(i),targetWord);
 		  }
 	  }
+	  cache.put(targetWord,denominator);
 	  //System.out.print("---"+denominator);
 	  
 	  return numerator/denominator;
@@ -125,8 +130,6 @@ public class IBMM1 implements WordAligner {
     t = null;
 	targetSize = getCorpus(trainingPairs,true).size();
     //initializeT(getCorpus(trainingPairs,false),getCorpus(trainingPairs,true));
-   
-
     // TODO: determine better convergence criteria
     int T = 25; // max iterations, equals 10 for now
     for (int iteration = 0; iteration < T; iteration++) {
@@ -140,31 +143,39 @@ public class IBMM1 implements WordAligner {
 
       // loop through all sentence pairs
       int numSentencePairs = trainingPairs.size();
+      long start1 = System.currentTimeMillis();  
+
       for (int k = 0; k < numSentencePairs; k++) {
         List<String> sourceWords = trainingPairs.get(k).getSourceWords();
         //add null 'word'
         sourceWords.add(null);
 
         List<String> targetWords = trainingPairs.get(k).getTargetWords();
+	HashMap<String,Double> cache = new HashMap<String,Double>();
         int numSourceWords = sourceWords.size();
         int numTargetWords = targetWords.size();
         for (int i = 0; i < numSourceWords; i++) { // loop through source words
           for (int j = 0; j < numTargetWords; j++) { // loop through target words
-            double delta = getDelta(sourceWords.get(i), targetWords.get(j), sourceWords,targetWords);
+            double delta = getDelta(sourceWords.get(i), targetWords.get(j), sourceWords,targetWords,cache);
             //System.out.println(sourceWords.get(i));
             countTargetSource.incrementCount(sourceWords.get(i),targetWords.get(j), delta);
             //countSource.incrementCount(sourceWords.get(i), delta);
-            Pair<Integer,Pair<Integer,Integer>> sourceLengthPair = new Pair<Integer,Pair<Integer,Integer>>(i,new Pair<Integer,Integer>(numSourceWords,numTargetWords));
-            countPosition.incrementCount(j, sourceLengthPair, delta);
+            //Pair<Integer,Pair<Integer,Integer>> sourceLengthPair = new Pair<Integer,Pair<Integer,Integer>>(i,new Pair<Integer,Integer>(numSourceWords,numTargetWords));
+            //countPosition.incrementCount(j, sourceLengthPair, delta);
             //countTargetLengthSourceLength.incrementCount(numTargetWords, numSourceWords, delta);
           }
         }
         //remove null word
         sourceWords.remove(sourceWords.size()-1);
       }
-      //Normalize t(e|f) setting it equal to c(e,f)/c(f)
-      t = Counters.conditionalNormalize(countTargetSource);
+      long end1 = System.currentTimeMillis();  
+ 	System.out.println(""+(start1-end1));
 
+      //Normalize t(e|f) setting it equal to c(e,f)/c(f)
+  	long start = System.currentTimeMillis();  
+    	t = Counters.conditionalNormalize(countTargetSource);
+	long end = System.currentTimeMillis();
+	System.out.println(""+(start-end));
     }
     
 
