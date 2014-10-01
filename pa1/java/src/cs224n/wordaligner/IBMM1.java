@@ -20,6 +20,7 @@ public class IBMM1 implements WordAligner {
   private CounterMap<String, String> countTargetSource; // c(e_j^(k), f_i^(k))
   private Counter<String> countSource; // c(f_i^(k))
   private CounterMap<Integer,Pair<Integer, Pair<Integer, Integer>>> countPosition; // c(j|i,n,m)
+  private double targetSize;
   //private CounterMap<Integer,Pair<Integer,Integer>> countTargetLengthSourceLength; // c(i,n,m)
 
   /** Model parameters to estimate. */
@@ -54,7 +55,7 @@ public class IBMM1 implements WordAligner {
     		alignment.addPredictedAlignment(i, a_i);
     	}
     }
-    sourceWords.remove(null);    
+    sourceWords.remove(sourceWords.size()-1);    
     return alignment;
   }
 
@@ -67,11 +68,19 @@ public class IBMM1 implements WordAligner {
    * @return delta
    */
   private double getDelta(String sourceWord, String targetWord, List<String> sourceList,List<String> targetList ){
-	  double numerator = t.getCount(targetWord,sourceWord);
+	  double numerator;
+	  if( t == null){
+		  numerator = 1/targetSize;
+	  }else{
+		  numerator = t.getCount(sourceWord,targetWord);
+	  }
 	  double denominator = 0.0;
-	  
 	  for(int i = 0; i < sourceList.size();i++){
-		  denominator += t.getCount(sourceList.get(i),targetWord);
+		  if( t == null){
+			  denominator +=  1/targetSize;
+		  }else{
+			  denominator += t.getCount(sourceList.get(i),targetWord);
+		  }
 	  }
 	  //System.out.print("---"+denominator);
 	  
@@ -80,8 +89,14 @@ public class IBMM1 implements WordAligner {
   
   private void initializeT(Set<String> sourceSet,Set<String> targetSet){
 	  double uniformPrior = 1.0 / targetSet.size(); 
+	  int i = 0;
+	  
 	  for(String targetWord: targetSet){
 		  for(String sourceWord: sourceSet){
+			  i+=1;
+			  System.out.println(""+i);
+			  System.out.println(""+targetSet.size());
+			  System.out.println(""+sourceSet.size());
 			  t.setCount(sourceWord,targetWord,uniformPrior);
 		  }
 	  }
@@ -90,6 +105,7 @@ public class IBMM1 implements WordAligner {
   Set<String> getCorpus(List<SentencePair> pairs,boolean getTarget){
 	  Set<String> corpus = new HashSet<String>();
 	  for(int i = 0;i<pairs.size();i++){
+		 
 		  List<String> toAdd;
 		  if(getTarget){
 			  toAdd = pairs.get(i).getTargetWords();
@@ -105,13 +121,16 @@ public class IBMM1 implements WordAligner {
   
   public void train(List<SentencePair> trainingPairs) {
 
-    t = new CounterMap<String, String>();
-    initializeT(getCorpus(trainingPairs,false),getCorpus(trainingPairs,true));
+    //t = new CounterMap<String, String>();
+    t = null;
+	targetSize = getCorpus(trainingPairs,true).size();
+    //initializeT(getCorpus(trainingPairs,false),getCorpus(trainingPairs,true));
    
 
     // TODO: determine better convergence criteria
-    int T = 100; // max iterations, equals 10 for now
+    int T = 25; // max iterations, equals 10 for now
     for (int iteration = 0; iteration < T; iteration++) {
+      System.out.println(""+iteration);
       // set all counts c to zero
       countTargetSource = new CounterMap<String, String>();
       countSource = new Counter<String>();
@@ -132,9 +151,9 @@ public class IBMM1 implements WordAligner {
         for (int i = 0; i < numSourceWords; i++) { // loop through source words
           for (int j = 0; j < numTargetWords; j++) { // loop through target words
             double delta = getDelta(sourceWords.get(i), targetWords.get(j), sourceWords,targetWords);
-            //System.out.print(""+delta);
+            //System.out.println(sourceWords.get(i));
             countTargetSource.incrementCount(sourceWords.get(i),targetWords.get(j), delta);
-            countSource.incrementCount(sourceWords.get(i), delta);
+            //countSource.incrementCount(sourceWords.get(i), delta);
             Pair<Integer,Pair<Integer,Integer>> sourceLengthPair = new Pair<Integer,Pair<Integer,Integer>>(i,new Pair<Integer,Integer>(numSourceWords,numTargetWords));
             countPosition.incrementCount(j, sourceLengthPair, delta);
             //countTargetLengthSourceLength.incrementCount(numTargetWords, numSourceWords, delta);
@@ -143,16 +162,6 @@ public class IBMM1 implements WordAligner {
         //remove null word
         sourceWords.remove(sourceWords.size()-1);
       }
-      
-      for(String key:t.keySet()){
-      	  Counter<String> valCounter = t.getCounter(key);
-      	  for(String val:valCounter.keySet()){
-      		  System.out.println("================================");
-      		  System.out.println(key);
-      		  System.out.println(val);
-      		  System.out.println(""+t.getCount(key, val));
-      	  }
-        }
       //Normalize t(e|f) setting it equal to c(e,f)/c(f)
       t = Counters.conditionalNormalize(countTargetSource);
 
