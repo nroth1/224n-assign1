@@ -25,6 +25,14 @@ public class IBMM1 implements WordAligner {
   private CounterMap<Integer, Pair<Integer, Pair<Integer, Integer>>> q; // q(j|i,n,m)
 
   /**
+   * Retrieve the t parameters. IBMM2 uses the t values trained from IBMM1 as
+   * its initial estimate of the t parameters.
+   */
+  protected CounterMap<String, String> getT() {
+    return t;
+  }
+
+  /**
    * Uses the IBMM1 EM inference algorithm to predict alignments
    * based on the sufficient statistics collected from train().
    *
