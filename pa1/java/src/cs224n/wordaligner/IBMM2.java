@@ -30,7 +30,7 @@ public class IBMM2 implements WordAligner {
   private CounterMap<Pair<Integer, Pair<Integer, Integer>>,Integer> q; // q(j|i,n,m)
 
   /**
-   * Uses the IBMM1 EM inference algorithm to predict alignments
+   * Uses the IBMM2 EM inference algorithm to predict alignments
    * based on the sufficient statistics collected from train().
    *
    * @param sentencePair The sentence pair to align.
@@ -73,7 +73,7 @@ public class IBMM2 implements WordAligner {
    * @param cache
    * @return delta
    */
-  private double getDelta(String sourceWord, String targetWord,int sourceIndex,int targetIndex, List<String> sourceList,List<String> targetList, HashMap<String,Double> cache){
+  private double getDelta(String sourceWord, String targetWord,int sourceIndex,int targetIndex, List<String> sourceList,List<String> targetList, HashMap<Pair<Integer, Pair<Integer, Integer>>,Double> cache){
 	  int numSourceWords = sourceList.size();
 	  int numTargetWords = targetList.size();
 	  Pair<Integer, Pair<Integer, Integer>> sourceLengthPair =
@@ -84,9 +84,9 @@ public class IBMM2 implements WordAligner {
     double numerator = t.getCount(sourceWord, targetWord) * q.getCount(sourceLengthPair,sourceIndex);
     //System.out.println("---"+ q.getCount(sourceLengthPair,sourceIndex));
     
-    //if(cache.containsKey(targetWord)){
-    //  return numerator/cache.get(targetWord);
-    //}
+    if(cache.containsKey(sourceLengthPair)){
+      return numerator/cache.get(sourceLengthPair);
+    }
     double denominator = 0.0;
     for(int i = 0; i < sourceList.size();i++){
       if( t == null){
@@ -98,13 +98,13 @@ public class IBMM2 implements WordAligner {
         denominator += t.getCount(sourceList.get(i),targetWord) * q.getCount(sourceLengthPair,i);
       }
     }
-    cache.put(targetWord,denominator);
+    cache.put(sourceLengthPair,denominator);
     
 
     return numerator/denominator;
   }
 
-  
+
   private CounterMap<Pair<Integer, Pair<Integer, Integer>>,Integer> randInitQ(List<SentencePair> trainingPairs){
 	  q = new CounterMap<Pair<Integer, Pair<Integer, Integer>>,Integer>();
 	  for(SentencePair sp:trainingPairs){
@@ -125,7 +125,7 @@ public class IBMM2 implements WordAligner {
 	  }
 	  return Counters.conditionalNormalize(q);
   }
-  
+
   public void train(List<SentencePair> trainingPairs) {
 
     // Run IBMM1 to initialize t parameters
@@ -136,7 +136,7 @@ public class IBMM2 implements WordAligner {
 
     //initializeT(getCorpus(trainingPairs,false),getCorpus(trainingPairs,true));
     // TODO: determine better convergence criteria
-    int T = 25; // max iterations, equals 10 for now
+    int T = 50; // max iterations, equals 10 for now
     for (int iteration = 0; iteration < T; iteration++) {
       System.out.println(""+iteration);
       // set all counts c to zero
@@ -155,7 +155,7 @@ public class IBMM2 implements WordAligner {
         sourceWords.add(null);
 
         List<String> targetWords = trainingPairs.get(k).getTargetWords();
-        HashMap<String,Double> cache = new HashMap<String,Double>();
+        HashMap<Pair<Integer, Pair<Integer, Integer>>,Double> cache = new HashMap<Pair<Integer, Pair<Integer, Integer>>,Double>();
         int numSourceWords = sourceWords.size();
         int numTargetWords = targetWords.size();
         for (int i = 0; i < numSourceWords; i++) { // loop through source words
