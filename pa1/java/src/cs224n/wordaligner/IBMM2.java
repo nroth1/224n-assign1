@@ -2,10 +2,8 @@ package cs224n.wordaligner;
 
 import cs224n.util.*;
 
-import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.Random;
 
 /**
