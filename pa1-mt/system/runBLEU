@@ -1,0 +1,16 @@
+#!/bin/bash
+# Build MT system, report BLEU scores and average score
+
+if [ $# -gt 0 ]; then
+	number=0
+	while [ $number -lt ${2} ]; do
+		phrasal.sh cs224n.vars 2,4-5 myfeature.ini ${1}
+		number=$((number + 1))
+	done
+	grep ${1} newstest2012.BLEU
+	echo "-----"
+	grep ${1} newstest2012.BLEU | cut -d' ' -f1 | awk '{ total += $1;
+	count++ } END { print total/count }'
+else
+	echo "Usage: ./runBLEU [name] [number of times]"
+fi

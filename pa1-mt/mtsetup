@@ -1,0 +1,16 @@
+#!/bin/bash
+# mtsetup - a script to setup phrasal and run the baseline model, etc.
+
+export LANG=en_US.utf8
+source setup.sh
+echo $CORENLP
+echo $PHRASAL
+echo $CLASSPATH
+echo $PATH
+java edu.stanford.nlp.mt.Phrasal
+phrasal.sh
+cd java
+ant
+cd ../system
+phrasal.sh cs224n.vars 1-5 cs224n.ini baseline
+cat newstest2012.BLEU
