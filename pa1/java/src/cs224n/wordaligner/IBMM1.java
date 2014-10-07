@@ -18,9 +18,12 @@ public class IBMM1 implements WordAligner {
   /**
    * Stores counts of 4-tuples (targetIndex, sourceIndex, numSourceWords, numTargetWords)
    */
-  private CounterMap<Integer,Pair<Integer, Pair<Integer, Integer>>> countPosition;
+  private CounterMap<Integer, Pair<Integer, Pair<Integer, Integer>>> countPosition;
 
-  /** Model parameters to estimate. */
+  /**
+   * Model parameters to estimate. Note that q is immaterial to the
+   * inference algorithm with IBMM1, but we compute it anyway.
+   */
   private CounterMap<String, String> t; // t(e|f)
   private CounterMap<Integer, Pair<Integer, Pair<Integer, Integer>>> q; // q(j|i,n,m)
 
@@ -104,16 +107,13 @@ public class IBMM1 implements WordAligner {
     CounterMap<String, String> countTargetSource;
     t = null;
 
-	  // TODO: determine better convergence criteria?
-    int T = 25;
+    int T = 25; // max iterations
     for (int iteration = 0; iteration < T; iteration++) {
       System.out.println(""+iteration);
 
       // set all counts c to zero
       countTargetSource = new CounterMap<String, String>();
-      countPosition = new CounterMap<Integer,Pair<Integer, Pair<Integer, Integer>>>();
-
-      long start1 = System.currentTimeMillis();
+      countPosition = new CounterMap<Integer, Pair<Integer, Pair<Integer, Integer>>>();
 
       // loop through all sentence pairs
       for (SentencePair trainingPair : trainingPairs) {
@@ -139,15 +139,10 @@ public class IBMM1 implements WordAligner {
         // remove null word
         sourceWords.remove(sourceWords.size() - 1);
       }
-      long end1 = System.currentTimeMillis();
-	    System.out.println(""+(start1-end1));
 
       // Normalize t(e|f) setting it equal to c(e,f)/c(f)
-  	  long start = System.currentTimeMillis();
       t = Counters.conditionalNormalize(countTargetSource);
-	    long end = System.currentTimeMillis();
-	    System.out.println(""+(start-end));
-      }
+    }
 
     // set q parameters -- once at end, conditional normalization of c(j|i,l,m)
     q = Counters.conditionalNormalize(countPosition);
