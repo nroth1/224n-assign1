@@ -5,8 +5,8 @@ if [ $# -gt 0 ]; then
 	number=0
 	while [ $number -lt ${2} ]; do
 		phrasal.sh cs224n.vars 2,4-5 myfeature.ini ${1}${number}
-		number=$((number + 1))
 		grep ${1}${number} newstest2012.BLEU
+		number=$((number + 1))
 	done
 	grep ${1} newstest2012.BLEU
 	echo "-----"
