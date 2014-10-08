@@ -25,7 +25,13 @@ public class LengthDiff implements RuleFeaturizer<IString, String> {
     // TODO: Return a list of features for the rule. Replace these lines
     // with your own feature.
     List<FeatureValue<String>> features = Generics.newLinkedList();
-    features.add(new FeatureValue<String>("LengthDiff", Math.abs(f.targetPhrase.size() - f.sourcePhrase.size()) > 5.0 ? 1.0 : 0.0));
+    int diff = Math.abs(f.targetPhrase.size() - f.sourcePhrase.size());
+    int category = 0;
+    if (diff == 0) category = 0;
+    if (diff > 1) category = 2;
+    if (diff <= 1 && diff > 0) category = 1;
+//    features.add(new FeatureValue<String>("LengthDiff", Math.abs(f.targetPhrase.size() - f.sourcePhrase.size())));
+    features.add(new FeatureValue<String>("LengthDiff", category));
     return features;
   }
 
