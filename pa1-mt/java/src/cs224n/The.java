@@ -26,11 +26,11 @@ public class The implements RuleFeaturizer<IString, String> {
     // TODO: Return a list of features for the rule. Replace these lines
     // with your own feature.
     int count = 0;
-    for (int i = 0; i < f.targetPhrase.size(); ++i) {
+    for (int i = 0; i < f.targetPhrase.size(); i++) {
       if (f.targetPhrase.get(i).toString().equalsIgnoreCase("the")) count++;
     }
     List<FeatureValue<String>> features = Generics.newLinkedList();
-    features.add(new FeatureValue<String>("The", (double) count / (double) f.targetPhrase.size()));
+    features.add(new FeatureValue<String>("The", (double) count / (double) f.targetPhrase.size() > 0.5 ? 1.0 : 0.0));
     return features;
   }
 
