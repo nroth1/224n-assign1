@@ -38,10 +38,19 @@ public class Punc implements RuleFeaturizer<IString, String> {
       if (f.sourcePhrase.get(i).toString().equalsIgnoreCase("\'")) countQuote--;
       if (f.sourcePhrase.get(i).toString().equalsIgnoreCase(",")) countComma--;
     }
-    int masterCount = 0;
-    if (countPeriod != 0) masterCount++;
-    if (countQuote != 0) masterCount++;
-    if (countComma != 0) masterCount++;
+    int masterCount = 1;
+    if (countPeriod != 0) masterCount *= 0;
+    if (countQuote != 0) masterCount *= 0;
+    if (countComma != 0) masterCount *= 0;
+    
+    
+//    int masterCount = 0;
+//    String punc = ".,();:%$!\'\"<>#";
+//    if (f.sourcePhrase.size() == 1 && f.targetPhrase.size() == 1) {
+//      if (punc.contains(f.sourcePhrase.get(0).toString().trim())) {
+//        if (f.sourcePhrase.get(0).toString().equalsIgnoreCase(f.targetPhrase.get(0).toString())) masterCount = 1;
+//      }
+//    }
     List<FeatureValue<String>> features = Generics.newLinkedList();
     features.add(new FeatureValue<String>("Punc", masterCount));
     return features;
