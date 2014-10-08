@@ -29,6 +29,7 @@ public class LengthDiff implements RuleFeaturizer<IString, String> {
     int category = 0;
     if (diff == 0) category = 0;
     if (diff > 1) category = 2;
+    if (diff > 2) category = 3;
     if (diff <= 1 && diff > 0) category = 1;
 //    features.add(new FeatureValue<String>("LengthDiff", Math.abs(f.targetPhrase.size() - f.sourcePhrase.size())));
     features.add(new FeatureValue<String>("LengthDiff", category));
