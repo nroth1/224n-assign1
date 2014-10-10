@@ -16,16 +16,10 @@ public class IBMM1 implements WordAligner {
   private static final long serialVersionUID = 1315751943476440515L;
 
   /**
-   * Stores counts of 4-tuples (targetIndex, sourceIndex, numSourceWords, numTargetWords)
-   */
-  private CounterMap<Integer, Pair<Integer, Pair<Integer, Integer>>> countPosition;
-
-  /**
    * Model parameters to estimate. Note that q is immaterial to the
-   * inference algorithm with IBMM1, but we compute it anyway.
+   * inference algorithm with IBMM1, so we don't bother to compute it.
    */
   private CounterMap<String, String> t; // t(e|f)
-  private CounterMap<Integer, Pair<Integer, Pair<Integer, Integer>>> q; // q(j|i,n,m)
 
   /**
    * Retrieve the t parameters. IBMM2 uses the t values trained from IBMM1 as
@@ -107,13 +101,10 @@ public class IBMM1 implements WordAligner {
     CounterMap<String, String> countTargetSource;
     t = null;
 
-    int T = 25; // max iterations
+    int T = 15; // max iterations
     for (int iteration = 0; iteration < T; iteration++) {
-      System.out.println(""+iteration);
-
       // set all counts c to zero
       countTargetSource = new CounterMap<String, String>();
-      countPosition = new CounterMap<Integer, Pair<Integer, Pair<Integer, Integer>>>();
 
       // loop through all sentence pairs
       for (SentencePair trainingPair : trainingPairs) {
@@ -123,17 +114,10 @@ public class IBMM1 implements WordAligner {
 
         List<String> targetWords = trainingPair.getTargetWords();
 	      HashMap<String, Double> cache = new HashMap<String, Double>();
-        int numSourceWords = sourceWords.size();
-        int numTargetWords = targetWords.size();
-        for (int i = 0; i < numSourceWords; i++) { // loop through source words (french)
-          for (int j = 0; j < numTargetWords; j++) { // loop through target words (english)
-            double delta = getDelta(sourceWords.get(i), targetWords.get(j), sourceWords, cache);
-            countTargetSource.incrementCount(sourceWords.get(i), targetWords.get(j), delta);
-            Pair<Integer, Pair<Integer, Integer>> sourceLengthPair =
-              new Pair<Integer, Pair<Integer, Integer>>(
-                i,
-                new Pair<Integer, Integer>(numSourceWords, numTargetWords));
-            countPosition.incrementCount(j, sourceLengthPair, delta);
+        for (String sourceWord : sourceWords) { // loop through source words (french)
+          for (String targetWord : targetWords) { // loop through target words (english)
+            double delta = getDelta(sourceWord, targetWord, sourceWords, cache);
+            countTargetSource.incrementCount(sourceWord, targetWord, delta);
           }
         }
         // remove null word
@@ -143,8 +127,5 @@ public class IBMM1 implements WordAligner {
       // Normalize t(e|f) setting it equal to c(e,f)/c(f)
       t = Counters.conditionalNormalize(countTargetSource);
     }
-
-    // set q parameters -- once at end, conditional normalization of c(j|i,l,m)
-    q = Counters.conditionalNormalize(countPosition);
   }
 }

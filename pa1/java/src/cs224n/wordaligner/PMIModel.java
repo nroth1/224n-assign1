@@ -43,14 +43,8 @@ public class PMIModel implements WordAligner {
         currentPMI = sourceTargetCounts.getCount(sourceWords.get(srcIndex), targetWords.get(tgtIndex)) /
           (sourceCounts.getCount(sourceWords.get(srcIndex)) * targetCounts.getCount(targetWords.get(tgtIndex)));
 
-// sanity check!
-//        System.out.println("joint count " + sourceTargetCounts.getCount(sourceWords.get(srcIndex), targetWords.get(tgtIndex)));
-//        System.out.println("source count " + sourceCounts.getCount(sourceWords.get(srcIndex)));
-//        System.out.println("target count " + targetCounts.getCount(targetWords.get(tgtIndex)));
-//        System.out.println("PMI: " + sourceWords.get(srcIndex) + " " + targetWords.get(tgtIndex) + currentPMI + "\n");
-
         // Update a_i and maxPMI
-        if (currentPMI > maxPMI) { // TODO: tiebreakers?
+        if (currentPMI > maxPMI) {
           a_i = srcIndex;
           maxPMI = currentPMI;
         }

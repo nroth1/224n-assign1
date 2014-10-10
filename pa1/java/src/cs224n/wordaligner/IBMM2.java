@@ -142,10 +142,8 @@ public class IBMM2 implements WordAligner {
     CounterMap<String, String> countTargetSource;
     CounterMap<Pair<Integer, Pair<Integer, Integer>>, Integer> countPosition;
 
-    int T = 50; // max iterations
+    int T = 25; // max iterations
     for (int iteration = 0; iteration < T; iteration++) {
-      System.out.println(""+iteration);
-
       // set all counts c to zero
       countTargetSource = new CounterMap<String, String>();
       countPosition = new CounterMap<Pair<Integer, Pair<Integer, Integer>>, Integer>();
